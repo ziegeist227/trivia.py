@@ -59,51 +59,104 @@ def get_questions(category=None, difficulty=None, token=None):
         return get_questions(category, difficulty, type)
     return response.status_code
 
+
 def get_categories():
     endpoint = "https://opentdb.com/api_category.php"
     response = requests.get(endpoint)
     if response.status_code == 200:
-        return response.json()
+        return response.json()["trivia_categories"]
     elif response.status_code == 429:
         sleep(5)
         return get_categories()
     return response.status_code
 
+
 def get_settings():
     if not os.path.exists("settings.json"):
-        with open("settings.json", "w") as f:
-            json.dump(
-                {"category": None, "difficulty": None},
-                f,
-                indent=2,
-            )
-    with open("settings.json", "r") as f:
-        return json.load(f)
+        try:
+            with open("settings.json", "w") as f:
+                json.dump(
+                    {"category": None, "difficulty": None},
+                    f,
+                    indent=2,
+                )
+        except IOError:
+            print("Error: Unable to write to settings.json")
+    try:
+        with open("settings.json", "r") as f:
+            return json.load(f)
+    except IOError:
+        print("Error: Unable to read settings.json")
+
+
+def main_menu():
+    os.system("cls" if os.name == "nt" else "clear")
+    print(r"""
+   /$$               /$$            /$$                                  
+  | $$              |__/           |__/                                  
+ /$$$$$$    /$$$$$$  /$$ /$$    /$$ /$$  /$$$$$$       /$$$$$$  /$$   /$$
+|_  $$_/   /$$__  $$| $$|  $$  /$$/| $$ |____  $$     /$$__  $$| $$  | $$
+  | $$    | $$  \__/| $$ \  $$/$$/ | $$  /$$$$$$$    | $$  \ $$| $$  | $$
+  | $$ /$$| $$      | $$  \  $$$/  | $$ /$$__  $$    | $$  | $$| $$  | $$
+  |  $$$$/| $$      | $$   \  $/   | $$|  $$$$$$$ /$$| $$$$$$$/|  $$$$$$$
+   \___/  |__/      |__/    \_/    |__/ \_______/|__/| $$____/  \____  $$
+                                                     | $$       /$$  | $$
+                                                     | $$      |  $$$$$$/
+                                                     |__/       \______/ """)
+    print("1) Play")
+    print("2) Settings")
+    print("3) Exit")
+    while True:
+        try:
+            choice = int(input("\nSelect an option: "))
+            if choice < 1 or choice > 3:
+                print("Invalid input: Please enter a number between 1 and 3")
+                continue
+            break
+        except ValueError:
+            print("Invalid input: Please enter a number")
+    match choice:
+        case 1:
+            start_game()
+        case 2:
+            settings_menu()
+        case 3:
+            exit()
+
 
 def settings_menu():
     settings = get_settings()
     categories = get_categories()
     difficulties = {3: "easy", 4: "medium", 5: "hard"}
-    category = settings["category"]
-    difficulty = settings["difficulty"].capitalize()
-
+    category = settings["category"] if settings["category"] else None
+    difficulty = settings["difficulty"].capitalize() if settings["difficulty"] else None
     while True:
         os.system("cls" if os.name == "nt" else "clear")
         print(r"""
- _________       __    __  .__                      
-/   _____/ _____/  |__/  |_|__| ____    ____  ______
-\_____  \_/ __ \   __\   __\  |/    \  / ___\/  ___/
- /        \  ___/|  |  |  | |  |   |  \/ /_/  >___ \ 
-/_______  /\___  >__|  |__| |__|___|  /\___  /____  >
-        \/     \/                   \//_____/     \/ """)
-        if category == None:
-            print("Current Question Category: All Categories")
-        else:
-            print(f"Current Question Category: {categories[category]['name']}")
-        if difficulty == None:
-            print("Current Question Difficulty: Any Difficulty")
-        else:
-            print(f"Current Question Difficulty: {difficulty}")
+                       /$$     /$$     /$$                              
+                      | $$    | $$    |__/                              
+  /$$$$$$$  /$$$$$$  /$$$$$$ /$$$$$$   /$$ /$$$$$$$   /$$$$$$   /$$$$$$$
+ /$$_____/ /$$__  $$|_  $$_/|_  $$_/  | $$| $$__  $$ /$$__  $$ /$$_____/
+|  $$$$$$ | $$$$$$$$  | $$    | $$    | $$| $$  \ $$| $$  \ $$|  $$$$$$ 
+ \____  $$| $$_____/  | $$ /$$| $$ /$$| $$| $$  | $$| $$  | $$ \____  $$
+ /$$$$$$$/|  $$$$$$$  |  $$$$/|  $$$$/| $$| $$  | $$|  $$$$$$$ /$$$$$$$/
+|_______/  \_______/   \___/   \___/  |__/|__/  |__/ \____  $$|_______/ 
+                                                     /$$  \ $$          
+                                                    |  $$$$$$/          
+                                                     \______/           """)
+        print(
+            "Current Question Category: "
+            + (
+                categories[category - 6]["name"]
+                if category is not None
+                else "All Categories"
+            )
+        )
+        print(
+            "Current Question Difficulty: "
+            + (difficulty.capitalize() if difficulty is not None else "Any Difficulty")
+        )
+
         try:
             choice = int(
                 input("""
@@ -113,24 +166,46 @@ def settings_menu():
                       
 Select the setting you wish to change: """)
             )
-            if choice < 0 and choice > 3:
+            if choice < 1 and choice > 3:
                 print("Invalid input: Please enter a number between 1 and 3")
             match choice:
                 case 1:
                     os.system("cls" if os.name == "nt" else "clear")
                     print("1) Back")
                     print("2) All Categories")
-                    for idx, category in enumerate(categories["trivia_categories"]):
-                        print(f"{idx + 3}) {category['name']} ({category["id"]})")
-                    category = int(
-                        input("\nSelect the category of questions you wish to answer: ")
-                    ) + 6
-                    with open("settings.json", "w") as f:
-                        json.dump(
-                            {"category": category, "difficulty": difficulty},
-                            f,
-                            indent=2,
-                        )
+                    for idx, category in enumerate(categories):
+                        print(f"{idx + 3}) {category['name']}")
+                    while True:
+                        try:
+                            choice = int(
+                                input(
+                                    "\nSelect the category of questions you wish to answer: "
+                                )
+                            )
+                            if choice < 1 or choice > len(categories) + 2:
+                                print(
+                                    "Invalid input: Please enter a number between 1 and "
+                                    + str(len(categories) + 2)
+                                )
+                                continue
+                            elif choice == 2:
+                                category = None
+                            elif choice == 1:
+                                settings_menu()
+                            else:
+                                category = choice + 3
+                            break
+                        except ValueError:
+                            print("Invalid input: Please enter a number")
+                    try:
+                        with open("settings.json", "w") as f:
+                            json.dump(
+                                {"category": category, "difficulty": difficulty},
+                                f,
+                                indent=2,
+                            )
+                    except IOError:
+                        print("Error: Unable to write to settings.json")
                 case 2:
                     os.system("cls" if os.name == "nt" else "clear")
                     print("1) Back")
@@ -138,21 +213,38 @@ Select the setting you wish to change: """)
                     print("3) Easy")
                     print("4) Medium")
                     print("5) Hard")
-                    difficulty = difficulties[int(
-                        input(
-                            "\nSelect the difficulty of questions you wish to answer: "
-                        )
-                    )]
-                    pass
+                    while True:
+                        try:
+                            choice = int(
+                                input(
+                                    "\nSelect the difficulty of questions you wish to answer: "
+                                )
+                            )
+                            if choice < 1 or choice > 5:
+                                print(
+                                    "Invalid input: Please enter a number between 1 and 5"
+                                )
+                                continue
+                            elif choice == 2:
+                                difficulty = None
+                            elif choice == 1:
+                                settings_menu()
+                            else:
+                                difficulty = difficulties[choice]
+                            break
+                        except ValueError:
+                            print("Invalid input: Please enter a number")
+                    try:
+                        with open("settings.json", "w") as f:
+                            json.dump(
+                                {"category": category, "difficulty": difficulty},
+                                f,
+                                indent=2,
+                            )
+                    except IOError:
+                        print("Error: Unable to write to settings.json")
                 case 3:
-                    with open("settings.json", "w") as f:
-                        json.dump(
-                            {"category": category, "difficulty": difficulty},
-                            f,
-                            indent=2,
-                        )
-                    start_game()
-                    pass
+                    main_menu()
         except ValueError:
             print("Invalid input: Please enter a number between 1 and 3")
 
@@ -209,12 +301,17 @@ def start_game(category=None, difficulty=None):
             else:
                 os.system("cls" if os.name == "nt" else "clear")
                 print(r"""
-  ________                        ________                     
- /  _____/_____    _____   ____   \_____  \___  __ ___________ 
-/   \  ___\__  \  /     \_/ __ \   /   |   \  \/ // __ \_  __ \
-\    \_\  \/ __ \|  Y Y  \  ___/  /    |    \   /\  ___/|  | \/
- \______  (____  /__|_|  /\___  > \_______  /\_/  \___  >__|   
-        \/     \/      \/     \/          \/          \/       """)
+                                                                                          
+                                                                                          
+  /$$$$$$   /$$$$$$  /$$$$$$/$$$$   /$$$$$$         /$$$$$$  /$$    /$$ /$$$$$$   /$$$$$$ 
+ /$$__  $$ |____  $$| $$_  $$_  $$ /$$__  $$       /$$__  $$|  $$  /$$//$$__  $$ /$$__  $$
+| $$  \ $$  /$$$$$$$| $$ \ $$ \ $$| $$$$$$$$      | $$  \ $$ \  $$/$$/| $$$$$$$$| $$  \__/
+| $$  | $$ /$$__  $$| $$ | $$ | $$| $$_____/      | $$  | $$  \  $$$/ | $$_____/| $$      
+|  $$$$$$$|  $$$$$$$| $$ | $$ | $$|  $$$$$$$      |  $$$$$$/   \  $/  |  $$$$$$$| $$      
+ \____  $$ \_______/|__/ |__/ |__/ \_______/       \______/     \_/    \_______/|__/      
+ /$$  \ $$                                                                                
+|  $$$$$$/                                                                                
+ \______/                                                                                 """)
                 print(f"\nYour Score: {score}")
                 while True:
                     try:
@@ -237,7 +334,7 @@ Enter the number of the option you want to select: """)
                 if continue_game == 1:
                     continue
                 elif continue_game == 2:
-                    start_game()
+                    main_menu()
                 elif continue_game == 3:
                     exit()
             answers.clear()
@@ -245,4 +342,5 @@ Enter the number of the option you want to select: """)
         print("Grabbing more questions...")
 
 
-settings_menu()
+if __name__ == "__main__":
+    main_menu()
