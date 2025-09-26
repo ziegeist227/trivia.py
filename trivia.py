@@ -1,6 +1,7 @@
 import os
 import requests
 import json
+import art
 from html import unescape
 from random import shuffle
 from time import sleep
@@ -130,7 +131,7 @@ def settings_menu():
     categories = get_categories()
     difficulties = {3: "easy", 4: "medium", 5: "hard"}
     category = settings["category"] if settings["category"] else None
-    difficulty = settings["difficulty"].capitalize() if settings["difficulty"] else None
+    difficulty = settings["difficulty"] if settings["difficulty"] else None
     while True:
         os.system("cls" if os.name == "nt" else "clear")
         print(r"""
@@ -148,7 +149,7 @@ def settings_menu():
         print(
             "Current Question Category: "
             + (
-                categories[category - 6]["name"]
+                categories[category - 9]["name"]
                 if category is not None
                 else "All Categories"
             )
@@ -194,7 +195,7 @@ Select the setting you wish to change: """)
                             elif choice == 1:
                                 settings_menu()
                             else:
-                                category = choice + 3
+                                category = choice + 6
                             break
                         except ValueError:
                             print("Invalid input: Please enter a number")
@@ -292,7 +293,16 @@ def start_game(category=None, difficulty=None):
                 int(user_input)
                 == answers.index(unescape(question["correct_answer"])) + 1
             ):
-                print("Correct!")
+                os.system("cls" if os.name == "nt" else "clear")
+                print(r"""
+                                                               /$$    /$$
+                                                              | $$   | $$
+  /$$$$$$$  /$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$$ /$$$$$$ | $$
+ /$$_____/ /$$__  $$ /$$__  $$ /$$__  $$ /$$__  $$ /$$_____/|_  $$_/ | $$
+| $$      | $$  \ $$| $$  \__/| $$  \__/| $$$$$$$$| $$        | $$   |__/
+| $$      | $$  | $$| $$      | $$      | $$_____/| $$        | $$ /$$   
+|  $$$$$$$|  $$$$$$/| $$      | $$      |  $$$$$$$|  $$$$$$$  |  $$$$//$$
+ \_______/ \______/ |__/      |__/       \_______/ \_______/   \___/ |__/""")
                 if question["difficulty"] == "easy":
                     score += 100
                 elif question["difficulty"] == "medium":
@@ -333,11 +343,12 @@ Enter the number of the option you want to select: """)
                     except ValueError:
                         print("Invalid input: Please enter a number between 1 and 3")
                 if continue_game == 1:
-                    continue
+                    pass
                 elif continue_game == 2:
                     main_menu()
                 elif continue_game == 3:
                     exit()
+                score = 0
             answers.clear()
         os.system("cls" if os.name == "nt" else "clear")
         print("Grabbing more questions...")
