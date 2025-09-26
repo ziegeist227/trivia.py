@@ -90,6 +90,7 @@ def get_settings():
 
 
 def main_menu():
+    settings = get_settings()
     os.system("cls" if os.name == "nt" else "clear")
     print(r"""
    /$$               /$$            /$$                                  
@@ -117,7 +118,7 @@ def main_menu():
             print("Invalid input: Please enter a number")
     match choice:
         case 1:
-            start_game()
+            start_game(category=settings["category"], difficulty=settings["difficulty"])
         case 2:
             settings_menu()
         case 3:
