@@ -1,7 +1,6 @@
 import os
 import requests
 import json
-import art
 from html import unescape
 from random import shuffle
 from time import sleep
