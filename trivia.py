@@ -389,5 +389,4 @@ Enter the number of the option you want to select: """)
 
 
 if __name__ == "__main__":
-    get_settings()
-    # main_menu()
+    main_menu()
