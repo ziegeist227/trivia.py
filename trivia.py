@@ -84,7 +84,42 @@ def get_settings():
             print("Error: Unable to write to settings.json")
     try:
         with open("settings.json", "r") as f:
-            return json.load(f)
+            settings = json.load(f)
+            if settings["category"] is not None and type(settings["category"]) is not int:
+                try: 
+                    with open("settings.json", "w") as f:
+                        json.dump(
+                            {"category": None, "difficulty": settings["difficulty"]},
+                            f,
+                            indent=2,
+                        )
+                    settings["category"] = None
+                except IOError:
+                    print("Error: Unable to write to settings.json")
+            if type(settings["category"]) is int:
+                if settings["category"] < 1 or settings["category"] > 32:
+                    try: 
+                        with open("settings.json", "w") as f:
+                            json.dump(
+                                {"category": None, "difficulty": settings["difficulty"]},
+                                f,
+                                indent=2,
+                            )
+                        settings["category"] = None
+                    except IOError:
+                        print("Error: Unable to write to settings.json")
+            if settings["difficulty"] is not None and settings["difficulty"] not in ("easy", "medium", "hard"):
+                try: 
+                    with open("settings.json", "w") as f:
+                        json.dump(
+                            {"category": settings["category"], "difficulty": None},
+                            f,
+                            indent=2,
+                        )
+                    settings["difficulty"] = None
+                except IOError:
+                    print("Error: Unable to write to settings.json")
+            return settings
     except IOError:
         print("Error: Unable to read settings.json")
 
@@ -354,4 +389,5 @@ Enter the number of the option you want to select: """)
 
 
 if __name__ == "__main__":
-    main_menu()
+    get_settings()
+    # main_menu()

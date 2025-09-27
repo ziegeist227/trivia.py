@@ -13,7 +13,7 @@ A simple trivia game written in Python using the Open Trivia DB API.
 
 ## Settings
 
-The game saves your settings in a file called `settings.json`. You can edit this file to change the default category and difficulty.
+The game saves your settings in a file called `settings.json`. This file is edited in the settings menu to change the default category and difficulty.
 
 ## API
 
